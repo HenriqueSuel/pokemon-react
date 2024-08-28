@@ -1,24 +1,45 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import TypeSelector from "./components/typeSelector";
+import { getApi, getApiFetch, getApiFullUrl } from "./services/api.service";
+import {
+  INamePokemon,
+  IPokemon,
+  IResponsPokemonTypes,
+  IResponsePokemon,
+} from "./interface/pokemon.interface";
+import Table from "./components/table";
 
 function App() {
+  const [listTypes, setListTypes] = useState<Array<IPokemon>>([]);
+  const [listPokemon, setListPokemon] = useState<Array<INamePokemon>>([]);
+  const [selectedType, setSelectedType] = useState("");
+
+  useEffect(() => {
+    getApi<IResponsPokemonTypes>("/type").then((data) => {
+      setListTypes(data.data.results);
+    });
+
+    // getApiFetch("/type").then((data) => {
+    //   return data.json()
+    // }).then((data) => {
+    //   console.log('Fetch', data)
+    // })
+  }, []);
+
+  useEffect(() => {
+    console.log("selectedType", selectedType);
+    if (!selectedType) return;
+
+    getApiFullUrl<IResponsePokemon>(selectedType).then((response) => {
+      setListPokemon(response.data.pokemon);
+    });
+  }, [selectedType]);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <TypeSelector types={listTypes} setSelectedType={setSelectedType} />
+
+      <Table listPokemon={listPokemon} />
     </div>
   );
 }
